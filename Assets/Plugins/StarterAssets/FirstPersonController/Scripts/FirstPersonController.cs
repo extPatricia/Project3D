@@ -211,6 +211,16 @@ namespace StarterAssets
 					_verticalVelocity = -2f;
 				}
 
+				// Crouch
+				if(_input.crouch)
+				{
+					_controller.height = 1;
+				}
+				else
+				{
+					_controller.height = 2;
+				}
+
 				// Jump
 				if (_input.jump && _jumpTimeoutDelta <= 0.0f)
 				{
