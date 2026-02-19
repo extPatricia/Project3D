@@ -1,5 +1,6 @@
 using UnityEngine;
 using System;
+using Cinemachine;
 
 public class Explosion : MonoBehaviour
 {
@@ -8,7 +9,9 @@ public class Explosion : MonoBehaviour
 
 	#region 
 	[SerializeField] private Camera _mainCamera;
-	[SerializeField] private Camera _explosionCamera;
+	[SerializeField] private Camera _camera;
+	[SerializeField] private CinemachineVirtualCamera _explosionCamera;
+	[SerializeField] private CinemachineVirtualCamera _normalVirtualCamera;
 	[SerializeField] private GameObject _explosionEffect;
 	[SerializeField] private GameObject _explosionPlayer;
 	[SerializeField] private float _explosionArea;
@@ -22,10 +25,8 @@ public class Explosion : MonoBehaviour
 		if (other.gameObject == _explosionPlayer)
 		{
 			// Switch cameras
-			_mainCamera.enabled = false;
-			_explosionCamera.enabled = true;
-			_explosionCamera.transform.LookAt(_explosionPlayer.transform.position);
-			_explosionCamera.transform.Translate(_explosionCamera.transform.forward * Time.deltaTime * 2f, Space.Self);
+			_explosionCamera.Priority = 10;
+			_normalVirtualCamera.Priority = 0;
 
 			// Activate explosion effect
 			_explosionEffect.SetActive(true);
@@ -49,10 +50,9 @@ public class Explosion : MonoBehaviour
 	private void ResetPlayer()
 	{
 		// Switch back cameras
-		_explosionCamera.enabled = false;
-		_mainCamera.enabled = true;
+		_explosionCamera.Priority = 0;
+		_normalVirtualCamera.Priority = 10;
 
-		
 		// Reset player position and state
 		Vector3 currentPos = _explosionPlayer.transform.position;
 		_explosionPlayer.transform.localPosition = Vector3.zero;
