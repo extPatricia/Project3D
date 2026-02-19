@@ -13,31 +13,10 @@ public class Explosion : MonoBehaviour
 	[SerializeField] private GameObject _explosionPlayer;
 	[SerializeField] private float _explosionArea;
 	[SerializeField] private float _explosionForce;
+	[SerializeField] private AudioClip _explosionSound;
 	#endregion
 
 	#region Unity Callbacks
-	private void Update()
-	{
-		if(_explosionEffect != null)
-		{
-			_explosionCamera.transform.LookAt(_explosionPlayer.transform.position);
-			_explosionCamera.transform.Translate(_explosionCamera.transform.forward * Time.deltaTime * 2f, Space.Self);
-			if (Vector3.Distance(_explosionCamera.transform.position, _explosionPlayer.transform.position) < 3)
-			{
-				_explosionCamera.enabled = false;
-				_mainCamera.enabled = true;
-				Vector3 currentPos = _explosionPlayer.transform.position;
-				_explosionPlayer.transform.localPosition = Vector3.zero;
-				_explosionPlayer.transform.GetComponent<CharacterController>().enabled = false;
-				_explosionPlayer.transform.position = currentPos;
-				_explosionPlayer.transform.GetComponent<CharacterController>().enabled = true;
-				_explosionPlayer.transform.GetComponent<Animator>().enabled = true;
-				Destroy(gameObject);
-				//Vector3 currentPos = _explosionPlayer.transform.position;
-				//_explosionPlayer.transform.position = currentPos;
-			}
-		}
-	}
 	private void OnTriggerEnter(Collider other)
 	{
 		if (other.gameObject == _explosionPlayer)
@@ -45,14 +24,49 @@ public class Explosion : MonoBehaviour
 			// Switch cameras
 			_mainCamera.enabled = false;
 			_explosionCamera.enabled = true;
+			_explosionCamera.transform.LookAt(_explosionPlayer.transform.position);
+			_explosionCamera.transform.Translate(_explosionCamera.transform.forward * Time.deltaTime * 2f, Space.Self);
 
 			// Activate explosion effect
 			_explosionEffect.SetActive(true);
+			// Play explosion sound
+			AudioSource.PlayClipAtPoint(_explosionSound, transform.position);
+
+			CharacterController playerController = other.GetComponent<CharacterController>();
+			if (playerController != null)
+				playerController.enabled = false;
+
 			Animator playerAnim = other.GetComponent<Animator>();
 			if (playerAnim != null)
 				playerAnim.enabled = false;
+
 			ExplosionForce();
+
+			Invoke(nameof(ResetPlayer), 4f);
 		}
+	}
+
+	private void ResetPlayer()
+	{
+		// Switch back cameras
+		_explosionCamera.enabled = false;
+		_mainCamera.enabled = true;
+
+		
+		// Reset player position and state
+		Vector3 currentPos = _explosionPlayer.transform.position;
+		_explosionPlayer.transform.localPosition = Vector3.zero;
+		_explosionPlayer.transform.position = currentPos;
+
+		CharacterController playerController = _explosionPlayer.GetComponent<CharacterController>();
+		if (playerController != null)
+			playerController.enabled = true;
+
+		Animator playerAnim = _explosionPlayer.GetComponent<Animator>();
+		if (playerAnim != null)
+			playerAnim.enabled = true;
+
+		Destroy(gameObject);
 	}
 
 	private void OnDrawGizmos()
